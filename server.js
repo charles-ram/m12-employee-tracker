@@ -778,6 +778,120 @@ function deleteEmployee() {
 
         let employeeList = res;
 
-        let addEmpPrompt
-    })
-}
+        let addEmpPrompt = [
+            {
+                name: "select_employee",
+                type: "list",
+                message: "Terminate employee.",
+
+                choices: function() {
+                    employees = [];
+
+                    for (i = 0; i < employeeList.length; i++) {
+                        
+                        employee.push(employeeList[i].id + ": " + employeeList[i].employee);
+
+                    };
+
+                    employees.unshift("0: Exit");
+
+                    return employees;
+
+                }
+            },
+            {
+                name: "confirm",
+                type: "list",
+
+                message: function(answer) {
+
+                    return "Are you sure you want to TERMINATE " + answers.select_employee.split(": ")[1];
+
+                },
+
+                choices: ["Yes", "No"],
+
+                when: function( answers ) {
+
+                    return answers.select_employee !== "0: Exit";
+
+                }
+            }
+        ];
+
+        inquirer.prompt(addEmpPrompt)
+
+        .then(function(answer) {
+
+            if(answer.select_employee == "0: Exit") {
+
+                cli_prompt();
+
+            } else if (answer.confirm == "No") {
+
+                deleteEmployee();
+
+            } else {
+
+                let query = "DELETE FROM employees WHERE employees.id =" + answer.select_employee.split(": ")[0];
+
+                connection.query(query, function(err, res) {
+
+                    if (err) throw err;
+
+                });
+
+                let addAgainPrompt = [
+                    {
+                        name: "again",
+                        type: "list",
+                        message: "Would you like to remove another employee?",
+                        choices: ["Yes", "Exit"]
+                    }
+                ];
+
+                inquirer.prompt(addAgainPrompt)
+
+                .then(function(answer) {
+
+                    let query = "SELECT employees.id, employees.first_name, employees.last_name FROM employees;";
+                    
+                    connection.query(query, function(err, res) {
+
+                        if (err) throw err;
+
+                        for (i = 0; i < res.length; i++) {
+
+                            res[i]employee = res[i].first_name + " " + res[i].last_name;
+
+                            delete res[i].first_name;
+
+                            delete res[i].last_name;
+
+                        };
+
+                        if (answer.again == "Yes") {
+
+                            deleteEmployee();
+
+                        } else if (answer.again == "Exit") {
+
+                            console.table(res);
+
+                            cli_prompt();
+
+                        };
+                    });
+                });
+            };
+        });
+    });
+};
+
+function exit() {
+
+    connection.end();
+
+    console.log("Take care.");
+
+};
