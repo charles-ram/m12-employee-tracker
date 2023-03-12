@@ -139,3 +139,169 @@ function viewDept() {
     });
 };
 
+function viewRoles() {
+    let query = "SELECT roles.title, roles.salary, department.dept_name AS derpartment FROM roles INNER JOIN department ON department.id = roles.department_id;";
+
+    connection.query(query, function(err, res) {
+
+        if (err) throw err;
+
+        console.table(res);
+
+        cli_prompt();
+    });
+};
+
+function addEmployee() {
+
+    let query = "SELECT title FROM roles";
+
+    let query2 = 
+
+        "SELECT employees.first_name, employees.last_name, roles.title, roles.salary, department.dept_name, employees.manager_id " + 
+        "FROM employees " + 
+        "JOIN roles ON roles.id = employees.role_id " +
+        "JOIN department ON roles.department_id = department.id " +
+        "ORDER BY employees.id;"
+    ;
+
+    connection.query(query, function(err, res) {
+
+        if (err) throw err;
+
+        let rolesList = res;
+
+        connection.query(query2, function(err, res) {
+            
+            if (err) throw err;
+
+            for (i = 0; i < res.length; i++) {
+
+                if(res[i].manager_id == 0) {
+
+                    res[i].manager = "None"
+
+                } else {
+
+                    res[i].manager = res[res[i].manager_id -1].first_name + " " + res[res[i].manager_id -1].last_name;
+
+                };
+
+                delete res[i].manager_id;
+
+            };
+
+            conso9le.table(res);
+
+            let managerList = res;
+
+            let addEmptPrompt = [
+
+                {
+                    name: "first_name",
+                    type: "input",
+                    message: "Enter new employee's first name."
+                },
+
+                {
+                    name: "last_name",
+                    type: "input",
+                    message: "Enter new employee's last name."
+                },
+
+                {
+                    name: "select_role",
+                    type: "list",
+                    message: "Select new employee's role.",
+
+                    choices: function() {
+
+                        roles = [];
+
+                        for (i = 0; i< rolesList.length; i++) {
+                            const roleId = i + 1;
+
+                            roles.push(roleId = ": " + rolesList[i].title);
+
+                        };
+
+                        roles.unshift("0: Exit");
+
+                        return roles;
+                    }
+                },
+
+                {
+                    name: "select_manager",
+                    type: "list",
+                    message: "Select new employee's manager",
+
+                    choices: function() {
+                        managers = [];
+
+                        for(i = 0; i < managerList.length; i++) {
+
+                            const mId = i + 1;
+
+                            managers.push(mId + ": " + managerList[i].first_name + " " + managerList[i].last_name);
+
+                        };
+
+                        managers.unshift("0: None");
+
+                        managers.unshift("E: Exit");
+
+                        return managers;
+                    },
+
+                    when: function ( answers ) {
+                        
+                        return answers.select_role !== "0: Exit";
+
+                    }
+                }
+            ];
+
+            inquirer.prompt(addEmpPrompt)
+
+            .then(function(answer) {
+
+                if(answer.select_role == "0: Exit" || answer.select_manager == "E: Exit") {
+
+                    cli_prompt();
+
+                } else {
+
+                    console.log(answer);
+
+                    let query = "INSERT INTO employees SET ?";
+
+                    connection.query(query, 
+                        {
+                            first_name: answer.first_name,
+                            last_name: answer.last_name,
+
+                            role_id: parseInt(answer.select_role.split(":")[0]),
+
+                            manager_id: parseInt(answer.select_manager.split(":")[0])
+                        },
+                        function(err, res) {
+
+                            if (err) throw err;
+
+                        })
+
+                        let addAgainPrompt = [
+                            {
+                                name: "again",
+                                type: "list",
+                                message: "Would you like to add another employee?",
+                                choices: ["Yes", "Exit"]
+                            }
+                        ];
+                }
+            })
+        })
+    })
+}
+
