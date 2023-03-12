@@ -195,7 +195,7 @@ function addEmployee() {
 
             let managerList = res;
 
-            let addEmptPrompt = [
+            let addEmpPrompt = [
 
                 {
                     name: "first_name",
@@ -598,7 +598,7 @@ function updateEmployee() {
             }
         ];
 
-        inquirer.prompt(addEmptPrompt)
+        inquirer.prompt(addEmpPrompt)
 
         .then(function(answer) {
 
@@ -759,4 +759,25 @@ function updateEmployee() {
 
 function deleteEmployee() {
 
+    let query = "SELECT employees.id, employees.first_name, employees.last_name FROM employees;";
+
+    connection.query(query, function( err, res) {
+
+        if (err) throw err;
+
+        for (i = 0; i < res.length; i++) {
+            res[i].employee = res[i].first_name + " " + res[i].last_name;
+
+            delete res[i].first_name;
+
+            delete res[i].last_name;
+
+        };
+
+        console.table(res);
+
+        let employeeList = res;
+
+        let addEmpPrompt
+    })
 }
