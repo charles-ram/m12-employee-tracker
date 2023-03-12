@@ -126,22 +126,34 @@ function viewAll() {
     });
 };
 
+// View all departments
 function viewDept() {
+
+    // Sql command to get data from department table
     let query = "SELECT department.dept_name AS departments FROM department;";
 
+    // Connect to mySQL u sing query instructions
     connection.query(query, function(err, res) {
 
+        // Throw error if there is issue
         if (err) throw err;
 
+        // Prints data retrieved to terminal in table format
         console.table(res);
 
+        // Prompt user
         cli_prompt();
+
     });
 };
 
+// View all roles
 function viewRoles() {
+
+    // Sql command to tget data from roles table
     let query = "SELECT roles.title, roles.salary, department.dept_name AS derpartment FROM roles INNER JOIN department ON department.id = roles.department_id;";
 
+    
     connection.query(query, function(err, res) {
 
         if (err) throw err;
@@ -152,10 +164,14 @@ function viewRoles() {
     });
 };
 
+
+// Add new employee
 function addEmployee() {
 
+    // SQL command to get data from roles table
     let query = "SELECT title FROM roles";
 
+    // SQL command to get employee first_name/ last_name/ manager_id, role title/ salary and department name data from employees, roles, and department tables
     let query2 = 
 
         "SELECT employees.first_name, employees.last_name, roles.title, roles.salary, department.dept_name, employees.manager_id " + 
@@ -183,18 +199,23 @@ function addEmployee() {
 
                 } else {
 
+                    // Creates new row called manager, containing each employee's manager name
                     res[i].manager = res[res[i].manager_id -1].first_name + " " + res[res[i].manager_id -1].last_name;
 
                 };
 
+                // Removes manager id from res
                 delete res[i].manager_id;
 
             };
 
+            // Prints data
             conso9le.table(res);
 
+            // Assigns data from employee table to (res) to managerList
             let managerList = res;
 
+            // Array of actions to prompt user
             let addEmpPrompt = [
 
                 {
@@ -214,19 +235,27 @@ function addEmployee() {
                     type: "list",
                     message: "Select new employee's role.",
 
+                    // Dynamic choices using rolesList
                     choices: function() {
 
+                        // Init roles array
                         roles = [];
 
+                        // Loop through rolesList to extract the role titles from rolesList which is an object array containing data from roles table
                         for (i = 0; i< rolesList.length; i++) {
+
+                            // Looping parameter "i" will always align with the table index, therefore by adding 1 we have effectively converted it to match table id's
                             const roleId = i + 1;
 
+                            // Concat roleId and title strings and push the resulting string into our roles
                             roles.push(roleId = ": " + rolesList[i].title);
 
                         };
 
+                        // Add string "0: Exit" to the beginning of roles
                         roles.unshift("0: Exit");
 
+                        // Return roles array to be rendered by inquirer
                         return roles;
                     }
                 },
@@ -236,9 +265,13 @@ function addEmployee() {
                     type: "list",
                     message: "Select new employee's manager",
 
+                    // Dynamic choices using managerList
                     choices: function() {
+
+                        // Init manager array
                         managers = [];
 
+                        // Loop through managerList to extract the employee names from managerList
                         for(i = 0; i < managerList.length; i++) {
 
                             const mId = i + 1;
@@ -254,6 +287,7 @@ function addEmployee() {
                         return managers;
                     },
 
+                    // Dont use this prompt if user selected exit in previous prompt
                     when: function ( answers ) {
                         
                         return answers.select_role !== "0: Exit";
@@ -262,10 +296,13 @@ function addEmployee() {
                 }
             ];
 
+            // Prompt user actions using inquirer
             inquirer.prompt(addEmpPrompt)
 
+            // Await user response
             .then(function(answer) {
 
+                // If user selects exit return to main menu
                 if(answer.select_role == "0: Exit" || answer.select_manager == "E: Exit") {
 
                     cli_prompt();
@@ -281,6 +318,7 @@ function addEmployee() {
                             first_name: answer.first_name,
                             last_name: answer.last_name,
 
+                            // New employees table role_id col value is extracted by parsing
                             role_id: parseInt(answer.select_role.split(":")[0]),
 
                             manager_id: parseInt(answer.select_manager.split(":")[0])
@@ -291,6 +329,7 @@ function addEmployee() {
 
                         })
 
+                        // Array of actions to prompt user
                         let addAgainPrompt = [
                             {
                                 name: "again",
@@ -862,7 +901,7 @@ function deleteEmployee() {
 
                         for (i = 0; i < res.length; i++) {
 
-                            res[i]employee = res[i].first_name + " " + res[i].last_name;
+                            res[i].employee = res[i].first_name + " " + res[i].last_name;
 
                             delete res[i].first_name;
 
