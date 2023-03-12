@@ -76,4 +76,9 @@ function viewAll() {
         "JOIN roles ON roles.id = employees.role_id " + 
         "JOIN department ON roles.derpoartment_id = department.id " + 
         "ORDER BY employees.id;"
+        ;
+    connection.query(query, function(err, res) {
+        if (err) throw err;
+        for
+    })
 }
