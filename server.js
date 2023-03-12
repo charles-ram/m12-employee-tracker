@@ -126,3 +126,16 @@ function viewAll() {
     });
 };
 
+function viewDept() {
+    let query = "SELECT department.dept_name AS departments FROM department;";
+
+    connection.query(query, function(err, res) {
+
+        if (err) throw err;
+
+        console.table(res);
+
+        cli_prompt();
+    });
+};
+
