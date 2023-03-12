@@ -417,3 +417,116 @@ function addDept() {
         });
     });
 };
+
+function addRole() {
+
+    let query1 = "SELECT roles.title AS roles, roles.salary, department.dept_name FROM INNER JOIN department.id = roles.department_id;";
+
+    let query2 = "SELECT department.dept_name FROM department";
+
+    connection.query(query1, function(err, res) {
+
+        if (err) throw err;
+
+        console.table(res);
+
+        connection.query(query2, function(err, res) {
+
+            if (err) throw err;
+
+            let departmentList = res;
+
+            let addRolePrompt = [
+                {
+                    name: "add_role",
+                    type: "input",
+                    message: "Enter a new companyt role."
+                },
+                {
+                    name: "add_salary",
+                    type: "input",
+                    message: "Enter a salary for this role."
+                },
+                {
+                    name: "select_department",
+                    type: "list",
+                    message: "Select a department.",
+                    choices: function() {
+                        departments = [];
+
+                        for (i = 0; i< departmentList.length; i++) {
+                            const releId = i +1;
+
+                            departmens.push(roleId + ": " + departmentList[i].dept_name);
+
+                        };
+
+                        departments.unshift("0: Exit");
+
+                        return departments;
+                    }
+                }
+            ];
+
+            inquirer.prompt(addRolePrompt)
+
+            .then(function(answer) {
+
+                if(answer.select_department == "0: Exit") {
+
+                    cli_prompt();
+
+                } else {
+
+                    console.log(answer);
+
+                    let query = "INSERT INTO roles SET ?";
+
+                    connecti9on.query(query, 
+                        {
+                            title: answer.add_role,
+                            salary: answer.add_salary,
+
+                            department_id: parseInt(answer.select_department.split(":")[0])
+                        }, function (err, res) {
+
+                            if (err) throw err;
+
+                        });
+
+                        let addAgainPrompt = [
+                            {
+                                name: "again",
+                                type: "list",
+                                message: "Would you like to add another role?",
+                                choices: ["Yes", "Exit"]
+                            },
+                        ];
+
+                        inquirer.prompt(addAgainPrompt)
+
+                        .then(function(answer) {
+
+                            let query = "SELECT roles.id, roles.title AS roles, roles.salary, department.dept_name FROM roles INNER JOIN department ON department.id = roles.department_id;";
+
+                            connection.query(query, function (err, res) {
+
+                                if (err) throw err;
+
+                                if (answer.again == "Yes") {
+
+                                    addRole();
+
+                                } else if (answer.again == "Exit") {
+
+                                    console.table(res);
+
+                                    cli_prompt();
+                                };
+                            });
+                        });
+                };
+            });
+        });
+    });
+};
