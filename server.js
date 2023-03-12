@@ -45,23 +45,39 @@ function cli_prompt() {
     // Await user response
     .then(function(answer) {
 
-        // Execute function viewDept if user selection is "View departments"
+        // Execute function viewDept
         if(answer.action == "View employees") {
             viewAll();
+        
+        // Executes function viewDept
         } else if (answer.action == "View departments") {
             viewDept();
+        
+        // Executes function viewRoles
         } else if (answer.action == "View roles") {
             viewRoles();
+
+        // Executes function addEmployee
         } else if (answer.action == "Add employee") {
             addEmployee();
+
+        // Executes function addDept
         } else if (answer.action == "Add department") {
             addDept();
+
+        // Executes function addRole
         } else if (answer.action == "Add role") {
             addRole();
+
+        // Executes function updateEmployee
         } else if (answer.action == "Edit employee") {
             updateEmployee();
+
+        // Executes function deleteEmployee
         } else if (answer.action == "Remove employee") {
             deleteEmployee();
+
+        // Executes function EXIT to exit prompt
         } else if (answer.action == "EXIT") {
             exit();
         };
@@ -70,6 +86,8 @@ function cli_prompt() {
 
 // Views all employees in employee_db
 function viewAll() {
+
+    // SQL command to get employeese information
     let query =
         "SELECT employees.first_name, employee.last_name, roles.title, roles.salary, department.dept_name AS department, employee.manager_id " + 
         "FROM employees " + 
@@ -77,8 +95,34 @@ function viewAll() {
         "JOIN department ON roles.derpoartment_id = department.id " + 
         "ORDER BY employees.id;"
         ;
+
+    // Connect to mySQL using query instruction to access employees table
     connection.query(query, function(err, res) {
+
+        // Throw error if there is an issue
         if (err) throw err;
-        for
-    })
-}
+
+        // Adds manager names to the manager_id col
+        for( i = 0; i< res.length; i++) {
+
+            // If manager_id contains a "0"
+            if (res[i].manager_id == 0) {
+                res[i].manager = "None"
+            } else {
+                
+                // Create new row called manager
+                res[i].manager = res[res[i].manager_id - 1].first_name + " " + res[res[i].manager_id - 1].last_name;
+            };
+
+            // Removes manager id from res to not display it
+            delete res[i].manager_id;
+        };
+
+        // Prints data retrieved
+        console.table(res);
+
+        // Prompts user
+        cli_prompt();
+    });
+};
+
