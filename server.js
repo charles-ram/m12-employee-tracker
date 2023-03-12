@@ -549,20 +549,26 @@ function updateEmployee() {
 
         if (err) throw err;
 
-        for (i = 0; i< res.length; i++) {
+        let rolesList = res;
 
-            if (res[i].manager_id == 0) {
+        connection.query(query2, function(err, res) {
 
-                res[i].manager = "None"
+            if (err) throw err;
 
-            } else {
+            for (i = 0; i< res.length; i++) {
 
-                res[i].manager = res[res[i].manager_id -1].first_name + " " + res[res[i].manager_id -1].last_name;
+                if (res[i].manager_id == 0) {
 
+                    res[i].manager = "None"
+
+                } else {
+
+                    res[i].manager = res[res[i].manager_id -1].first_name + " " + res[res[i].manager_id -1].last_name;
+
+                };
+
+                delete res[i].manager_id;
             };
-
-            delete res[i].manager_id;
-        };
 
         console.table(res);
 
@@ -580,7 +586,7 @@ function updateEmployee() {
 
                         const mId = i + 1;
 
-                        employees.push(mId + ": " employeeList[i].first_name + " " + employeeList[i].last_name);
+                        employees.push(mId + ": " + employeeList[i].first_name + " " + employeeList[i].last_name);
 
                     };
 
@@ -635,7 +641,7 @@ function updateEmployee() {
 
                         choices: function () {
 
-                            managers [];
+                            managers = [];
 
                             for (i = 0; i < employeeList.length; i++) {
 
@@ -665,8 +671,92 @@ function updateEmployee() {
                 ];
 
                 inquirer.prompt(empPropPrompt)
-                
-            }
+
+                .then(function(answer) {
+                    if (answer.select_role == "0: Exit" || answer.select_manager == "E: Exit") {
+
+                        cli_prompt();
+
+                    } else {
+                        
+                        console.log(answer);
+
+                        let query = "UPDATE employee SET ? WHERE employees.id = " + empSelect;
+
+                        connection.query(query,
+                            {
+                                role_id: parseInt(answer.select_role.split(":")[0]),
+
+                                manager_id: parseInt(answer.select_manager.split(":")[0])
+                            },
+                            function(err, res) {
+
+                                if (err) throw err;
+
+                            });
+
+                            let addAgainPrompt = [
+                                {
+                                    name: "again",
+                                    type: "list",
+                                    message: "Would you like to add another employee?",
+                                    choices: ["Yes", "Exit"]
+                                }
+                            ];
+
+                            inquirer.prompt(addAgainPrompt)
+
+                            .then(function(answer) {
+
+                                let query = 
+                                    "SELECT employees.first_name, employees.last_name, roles.title, roles.salary, department.dept_name, employees.manager_id " +
+                                    "FROM employees " +
+                                    "JOIN roles ON roles.id = employees.role_id " +
+                                    "JOIN department ON roles.department_id = department.id " +
+                                    "ORDER BY employees.id;"
+
+                                ;
+
+                                connection.query(query, function(err, res) {
+
+                                    if (err) throw err;
+
+                                    if (answer.again == "Yes") {
+
+                                        updateEmployee();
+
+                                    } else if (answer.again == "Exit") {
+
+                                        for (i = 0; i <res.length; i++) {
+
+                                            if(res[i].manager_id == 0) {
+                                                
+                                                res[i].manager = "None"
+
+                                            } else {
+
+                                                res[i].manager = res[res[i].manager_id - 1].first_name + " " + res[res[i].manager_id - 1].last_name;
+
+                                            };
+
+                                            delete res[i].manager_id;
+
+                                        };
+
+                                        console.table(res);
+
+                                        cli_prompt();
+                                    };  
+                                });
+                            }); 
+                        };
+                    });    
+                };
+            });
         })
     })
+};
+
+function deleteEmployee() {
+
 }
