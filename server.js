@@ -299,9 +299,52 @@ function addEmployee() {
                                 choices: ["Yes", "Exit"]
                             }
                         ];
-                }
-            })
+
+                        inquirer.prompt(addAgainPrompt)
+
+                        .then(function(answer) {
+
+                            let query = 
+                                "SELECT employees.first_name, employees.last_name, roles.title, roles.salary, department.dept_name, employees.manager_id " +
+                                "FROM employees " +
+                                "JOIN roles ON roles.id = employees.role_id " +
+                                "JOIN department ON roles.department_id = department.id " +
+                                "ORDER BY employees.id;"
+                                ;
+                            
+                            connection.query(query, function(err, res) {
+
+                                if (err) throw err;
+
+                                if (answer.again == "Yes") {
+
+                                    addEmployee();
+
+                                } else if (answer.again == "Exit") {
+
+                                    for (i = 0; i < res.length; i++) {
+
+                                        if(res[i].manager_id == 0) {
+
+                                            res[i].manager = res[res[i].manager_id - 1].first_name + " " + res[res[i].manager_id - 1].last_name;
+
+                                        };
+
+                                        delete res[i].manager_id;
+                                    
+                                    };
+
+                                    console.table(res);
+
+                                    cli_prompt();
+
+                                    
+                                };
+                            }); 
+                        });
+                };
+            });
         })
     })
-}
+};
 
